@@ -12,3 +12,7 @@ main {
     height: 400px;
     width: 100%;
 }
+
+#render {
+    margin: 2rem;
+}
