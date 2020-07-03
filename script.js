@@ -5,39 +5,51 @@ $("#submit").on("click", (event) => {
     getLocation();
 });
 
-let restaurants = [];
-
+// let restaurants = [];
+let locations = [];
 // Google Map API
 var map;
+var directionsService;
+var directionsRenderer;
+
 function initMap() {
+    directionsService = new google.maps.DirectionsService();
+    directionsRenderer = new google.maps.DirectionsRenderer();
     var mapOptions = {
-        zoom: 7,
+        zoom: 8,
         center: {
             lat: -33.8688,
             lng: 151.2093,
         },
     };
     this.map = new google.maps.Map(document.getElementById("map"), mapOptions);
+    directionsRenderer.setMap(map);
 }
 
-// Add marker function
-function addMarker(props) {
-    var marker = new google.maps.Marker({
-        position: props.coords,
-        map: map,
-    });
-    console.log("add marker");
-    if (props.content) {
-        console.log(props.content, map);
-        var infoWindow = new google.maps.InfoWindow({
-            content: props.content,
-        });
+// function calcRoute(start, end, middle) {
+//     var request = {
+//         origin: start,
+//         destination: end,
+//         waypoints: [
+//             {
+//                 location: middle,
+//                 stopover: true,
+//             },
+//         ],
+//         travelMode: "WALKING",
+//     };
 
-        marker.addListener("click", function () {
-            infoWindow.open(map, marker);
-        });
-    }
-}
+//     directionsService.route(request, function (result, status) {
+//         console.log(result, status);
+//         if (status == "OK") {
+//             directionsRenderer.setDirections(result);
+//         }
+//     });
+// }
+
+// document.getElementById("get").onclick = function () {
+//     calcRoute();
+// };
 
 function getLocation() {
     const locationInput = $("#location").val();
@@ -135,35 +147,76 @@ function getLocation() {
 
                 cardContent.append($("<span>").text(title));
 
-                cardAction
-                    .append($("<p>").text(address))
-                    .append($("<a>").attr("href", website).text("Let's Crawl"));
+                cardAction.append(
+                    $("<p>")
+                        .text(address)
+                        .attr("value", address)
+                        .attr("class", address)
+                );
+                // .append($("<a>").attr("href", website).text("Let's Crawl"));
 
                 card.append(cardImage, cardContent, cardAction);
                 wrapper.append(card);
                 $("#search-results").append(wrapper);
 
-                // Rendering dropdown options
-                $("#start").append(
-                    $("<option>").text(title).attr("value", address)
-                );
+                // Getting address for each restaurants
+                locations.push(address);
+                console.log(locations);
+                function calcRoute() {
+                    var request = {
+                        origin: locations[0],
+                        destination: locations[1],
+                        waypoints: [
+                            {
+                                location: locations[2],
+                                stopover: true,
+                            },
+                        ],
+                        travelMode: "WALKING",
+                    };
 
-                $("#end").append(
-                    $("<option>").text(title).attr("value", address)
-                );
-
-                // Getting lat and lon for the rendered restaurants
-                let restaurant = {
-                    coords: { lat, lng },
-                    content: title,
-                };
-                restaurants.push(restaurant);
-                console.log(restaurants);
-
-                for (let j = 0; j < restaurants.length; j++) {
-                    addMarker(restaurants[j]);
+                    directionsService.route(request, function (result, status) {
+                        console.log(result, status);
+                        if (status == "OK") {
+                            directionsRenderer.setDirections(result);
+                        }
+                    });
                 }
+                document.getElementById("render").onclick = function () {
+                    calcRoute();
+                };
+
+                // // Getting lat and lon for the rendered restaurants
+                // let restaurant = {
+                //     coords: { lat, lng },
+                //     content: title,
+                // };
+                // restaurants.push(restaurant);
+                // console.log(restaurants);
+
+                // for (let j = 0; j < restaurants.length; j++) {
+                //     addMarker(restaurants[j]);
+                // }
             }
         });
     });
 }
+
+// // Add marker function
+// function addMarker(props) {
+//     var marker = new google.maps.Marker({
+//         position: props.coords,
+//         map: map,
+//     });
+//     console.log("add marker");
+//     if (props.content) {
+//         console.log(props.content, map);
+//         var infoWindow = new google.maps.InfoWindow({
+//             content: props.content,
+//         });
+
+//         marker.addListener("click", function () {
+//             infoWindow.open(map, marker);
+//         });
+//     }
+// }
