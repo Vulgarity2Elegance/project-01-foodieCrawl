@@ -5,8 +5,8 @@ $("#submit").on("click", (event) => {
     getLocation();
 });
 
-// let restaurants = [];
-let locations = [];
+let restaurants = [];
+
 // Google Map API
 var map;
 var directionsService;
@@ -26,30 +26,24 @@ function initMap() {
     directionsRenderer.setMap(map);
 }
 
-// function calcRoute(start, end, middle) {
-//     var request = {
-//         origin: start,
-//         destination: end,
-//         waypoints: [
-//             {
-//                 location: middle,
-//                 stopover: true,
-//             },
-//         ],
-//         travelMode: "WALKING",
-//     };
+// Add marker function
+function addMarker(props) {
+    var marker = new google.maps.Marker({
+        position: props.coords,
+        map: map,
+    });
+    console.log("add marker");
+    if (props.content) {
+        console.log(props.content, map);
+        var infoWindow = new google.maps.InfoWindow({
+            content: props.content,
+        });
 
-//     directionsService.route(request, function (result, status) {
-//         console.log(result, status);
-//         if (status == "OK") {
-//             directionsRenderer.setDirections(result);
-//         }
-//     });
-// }
-
-// document.getElementById("get").onclick = function () {
-//     calcRoute();
-// };
+        marker.addListener("click", function () {
+            infoWindow.open(map, marker);
+        });
+    }
+}
 
 function getLocation() {
     const locationInput = $("#location").val();
@@ -159,22 +153,37 @@ function getLocation() {
                 wrapper.append(card);
                 $("#search-results").append(wrapper);
 
-                // Getting address for each restaurants
-                locations.push(address);
-                console.log(locations);
+                // Getting lat and lon for the rendered restaurants
+                let restaurant = {
+                    coords: { lat, lng },
+                    content: title,
+                };
+                restaurants.push(restaurant);
+                console.log(restaurants);
                 function calcRoute() {
-                    var request = {
-                        origin: locations[0],
-                        destination: locations[1],
-                        waypoints: [
-                            {
-                                location: locations[2],
-                                stopover: true,
-                            },
-                        ],
-                        travelMode: "WALKING",
-                    };
-
+                    var request;
+                    if (restaurants.length === 1) {
+                        addMarker(restaurants[0]);
+                    } else if (restaurants.length === 2) {
+                        request = {
+                            origin: restaurants[0].coords,
+                            destination: restaurants[1].coords,
+                            travelMode: "WALKING",
+                        };
+                    } else {
+                        request = {
+                            origin: restaurants[0].coords,
+                            destination: restaurants[1].coords,
+                            waypoints: [
+                                {
+                                    location: restaurants[2].coords,
+                                    stopover: true,
+                                },
+                            ],
+                            optimizeWaypoints: true,
+                            travelMode: "WALKING",
+                        };
+                    }
                     directionsService.route(request, function (result, status) {
                         console.log(result, status);
                         if (status == "OK") {
@@ -185,38 +194,7 @@ function getLocation() {
                 document.getElementById("render").onclick = function () {
                     calcRoute();
                 };
-
-                // // Getting lat and lon for the rendered restaurants
-                // let restaurant = {
-                //     coords: { lat, lng },
-                //     content: title,
-                // };
-                // restaurants.push(restaurant);
-                // console.log(restaurants);
-
-                // for (let j = 0; j < restaurants.length; j++) {
-                //     addMarker(restaurants[j]);
-                // }
             }
         });
     });
 }
-
-// // Add marker function
-// function addMarker(props) {
-//     var marker = new google.maps.Marker({
-//         position: props.coords,
-//         map: map,
-//     });
-//     console.log("add marker");
-//     if (props.content) {
-//         console.log(props.content, map);
-//         var infoWindow = new google.maps.InfoWindow({
-//             content: props.content,
-//         });
-
-//         marker.addListener("click", function () {
-//             infoWindow.open(map, marker);
-//         });
-//     }
-// }
